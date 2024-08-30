@@ -1,0 +1,10 @@
+[user]
+	name = Harihara Maharna
+	email = hariharamaharna1644@gmail.com
+	signingkey = 4280A2AE3EAC00ED245F67AFAA1C432174C0A627
+[init]
+	defaultBranch = main
+[commit]
+	gpgsign = true
+[core]
+	editor = nvim

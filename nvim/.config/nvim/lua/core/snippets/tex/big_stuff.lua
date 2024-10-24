@@ -1,5 +1,22 @@
-local in_mathzone = function()
-    return vim.fn["vimtex#syntax#in_mathzone"]() == 1
+---@diagnostic disable: undefined-global
+local mat = function(_, snip)
+    local rows = tonumber(snip.captures[2])
+    local cols = tonumber(snip.captures[3])
+    local nodes = {}
+    local ins_indx = 1
+    for j = 1, rows do
+        table.insert(nodes, r(ins_indx, tostring(j) .. "x1", i(1, "0")))
+        ins_indx = ins_indx + 1
+        for k = 2, cols do
+            table.insert(nodes, t(" & "))
+            table.insert(nodes, r(ins_indx, tostring(j) .. "x" .. tostring(k), i(1, "0")))
+            ins_indx = ins_indx + 1
+        end
+        table.insert(nodes, t({ " \\\\", "" }))
+    end
+    -- fix last node.
+    nodes[#nodes] = t(" \\\\")
+    return sn(nil, nodes)
 end
 
 return {
@@ -13,7 +30,7 @@ return {
     s(
         { trig = "sum", snippetType = "autosnippet" },
         c(1, {
-            fmta("\\sum_{<>}^{<>}{<>}", { i(1), i(2), i(3) }),
+            fmta("\\sum\\limits_{<>}^{<>}{<>}", { i(1), i(2), i(3) }),
             fmta("\\sum{<>}", i(1)),
         }),
         { condition = in_mathzone }
@@ -21,7 +38,7 @@ return {
     s(
         { trig = "prod", snippetType = "autosnippet" },
         c(1, {
-            fmta("\\prod_{<>}^{<>}{<>}", { i(1), i(2), i(3) }),
+            fmta("\\prod\\limits_{<>}^{<>}{<>}", { i(1), i(2), i(3) }),
             fmta("\\prod{<>}", i(1)),
         }),
         { condition = in_mathzone }
@@ -65,6 +82,30 @@ return {
             fmta("\\lim\\limits_{<> \\to <>}{<>}", { i(1), i(2), i(3) }),
             fmta("\\lim{<>}", i(1)),
         }),
+        { condition = in_mathzone }
+    ),
+
+    -- matrices!
+    s(
+        { trig = "([bBpvV])mat(%d+)x(%d+)", regTrig = true, name = "matrix", dscr = "matrix trigger lets go", snippetType = "autosnippet" },
+        fmt(
+            [[
+    \begin{<>}
+    <>
+    \end{<>}
+
+    ]],
+            {
+                f(function(_, snip)
+                    return snip.captures[1] .. "matrix" -- captures matrix type
+                end),
+                d(1, mat),
+                f(function(_, snip)
+                    return snip.captures[1] .. "matrix" -- i think i could probably use a repeat node but whatever
+                end),
+            },
+            { delimiters = "<>" }
+        ),
         { condition = in_mathzone }
     ),
 }
